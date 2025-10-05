@@ -3,674 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Pending - Sistem Pencatatan</title>
+    <title>Aplikasi Job Pending</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { box-sizing: border-box; }
-        .fade-in { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        body {
+            box-sizing: border-box;
         }
-        .gradient-blue-yellow {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #fbbf24 100%);
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #fbbf24 0%, #3b82f6 100%);
         }
-        .loading {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
+        
+        .logo-circle {
+            background: linear-gradient(45deg, #fbbf24, #3b82f6, #8b5cf6, #f59e0b);
+            background-size: 300% 300%;
+            animation: gradientShift 4s ease infinite;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4), 
+                        0 0 60px rgba(251, 191, 36, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.2);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            33% { background-position: 100% 50%; }
+            66% { background-position: 50% 100%; }
+            100% { background-position: 0% 50%; }
         }
-        .btn-delete {
-            transition: all 0.2s ease;
+        
+        .success-animation {
+            animation: successPulse 0.6s ease-out;
         }
-        .btn-delete:hover {
-            transform: scale(1.1);
+        
+        @keyframes successPulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
         }
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; }
-            .gradient-blue-yellow { background: white !important; }
+        
+        .thumbs-up {
+            animation: thumbsUp 1s ease-in-out;
+        }
+        
+        @keyframes thumbsUp {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-10deg) scale(1.2); }
+            75% { transform: rotate(10deg) scale(1.2); }
+        }
+        
+        .wink {
+            animation: wink 2s ease-in-out infinite;
+        }
+        
+        @keyframes wink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
-<body class="gradient-blue-yellow min-h-screen p-4">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="bg-white rounded-lg shadow-xl p-6 mb-4 border-4 border-yellow-400">
-            <div class="text-center">
-                <div class="mb-4">
-                    <img src="https://iili.io/KVH71P2.md.png" alt="Logo" class="w-20 h-20 mx-auto rounded-full border-4 border-blue-600 shadow-lg object-cover">
+<body class="gradient-bg min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <!-- Header dengan Logo -->
+        <div class="text-center mb-8">
+            <div class="logo-circle w-32 h-32 rounded-full mx-auto mb-4 flex items-center justify-center p-1">
+                <div class="bg-white rounded-full w-full h-full flex items-center justify-center">
+                    <img src="https://iili.io/KWiqdUg.png" alt="Logo" class="w-20 h-20 object-contain">
                 </div>
-                <h1 class="text-4xl font-bold text-blue-800">Job Pending</h1>
             </div>
+            <h1 class="text-4xl font-bold text-white mb-2">Job Pending</h1>
         </div>
 
-        <!-- Input Form -->
-        <div class="bg-white rounded-lg shadow-xl p-6 border-4 border-blue-400 mb-4 no-print">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-blue-800">📝 Input Data Baru</h2>
-                <button id="toggleForm" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    ➖ Sembunyikan Form
-                </button>
-            </div>
-            
-            <div id="formContainer">
-                <form id="jobPendingForm" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">📅 Tanggal</label>
-                            <input type="date" id="tanggal" name="tanggal" required class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">👤 Pembuat Pending</label>
-                            <input type="text" id="pembuatPending" name="pembuatPending" required placeholder="Nama pembuat" class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400" list="pembuatList">
-                            <datalist id="pembuatList"></datalist>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">🎯 Penerima Pending</label>
-                            <input type="text" id="penerimaPending" name="penerimaPending" required placeholder="Nama penerima" class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400" list="penerimaList">
-                            <datalist id="penerimaList"></datalist>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">🏫 Kelas</label>
-                            <select id="kelas" name="kelas" required class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
-                                <option value="">Pilih Kelas</option>
-                                <option value="X DKV">X DKV</option>
-                                <option value="X TAB A">X TAB A</option>
-                                <option value="X TAB B">X TAB B</option>
-                                <option value="XI DKV">XI DKV</option>
-                                <option value="XI TAB A">XI TAB A</option>
-                                <option value="XI TAB B">XI TAB B</option>
-                                <option value="XII DKV">XII DKV</option>
-                                <option value="XII TAB A">XII TAB A</option>
-                                <option value="XII TAB B">XII TAB B</option>
-                            </select>
-                        </div>
-                    </div>
-
+        <!-- Form Card -->
+        <div class="bg-white rounded-3xl card-shadow p-8 mb-8">
+            <form id="pendingForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Tanggal -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">📚 Mata Pelajaran</label>
-                        <input type="text" id="mataPelajaran" name="mataPelajaran" required placeholder="Nama mata pelajaran" class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400" list="mapelList">
-                        <datalist id="mapelList"></datalist>
+                        <label class="block text-gray-700 font-semibold mb-2">Tanggal</label>
+                        <input type="date" id="tanggal" required 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none input-focus transition-all duration-300">
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">⏰ Dari Jam Ke</label>
-                            <select id="jamDari" name="jamDari" required class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
-                                <option value="">Pilih jam awal</option>
-                                <option value="1">Jam ke 1</option>
-                                <option value="2">Jam ke 2</option>
-                                <option value="3">Jam ke 3</option>
-                                <option value="4">Jam ke 4</option>
-                                <option value="5">Jam ke 5</option>
-                                <option value="6">Jam ke 6</option>
-                                <option value="7">Jam ke 7</option>
-                                <option value="8">Jam ke 8</option>
-                                <option value="9">Jam ke 9</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">⏰ Sampai Jam Ke</label>
-                            <select id="jamSampai" name="jamSampai" required class="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400">
-                                <option value="">Pilih jam akhir</option>
-                                <option value="1">Jam ke 1</option>
-                                <option value="2">Jam ke 2</option>
-                                <option value="3">Jam ke 3</option>
-                                <option value="4">Jam ke 4</option>
-                                <option value="5">Jam ke 5</option>
-                                <option value="6">Jam ke 6</option>
-                                <option value="7">Jam ke 7</option>
-                                <option value="8">Jam ke 8</option>
-                                <option value="9">Jam ke 9</option>
-                            </select>
-                        </div>
+                    <!-- Pembuat Pending -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Pembuat Pending</label>
+                        <input type="text" id="pembuatPending" required placeholder="Nama pembuat pending"
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none input-focus transition-all duration-300">
                     </div>
 
-                    <div class="bg-gradient-to-r from-blue-100 to-yellow-100 rounded-lg p-4 border-2 border-blue-300">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm font-medium text-blue-800">📊 Total JP:</span>
-                            <span id="totalJP" class="text-3xl font-bold text-blue-600">0</span>
-                        </div>
-                        <div id="jamTerpilih" class="text-sm text-blue-700 mt-2">Belum ada jam yang dipilih</div>
+                    <!-- Penerima Pending -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Penerima Pending</label>
+                        <input type="text" id="penerimaPending" required placeholder="Nama penerima pending"
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none input-focus transition-all duration-300">
                     </div>
 
-                    <div class="text-center">
-                        <button type="submit" id="submitBtn" class="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            📤 Simpan Data
-                        </button>
+                    <!-- Kelas -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Kelas</label>
+                        <select id="kelas" required 
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none input-focus transition-all duration-300">
+                            <option value="">Pilih Kelas</option>
+                            <option value="X DKV">X DKV</option>
+                            <option value="X TAB A">X TAB A</option>
+                            <option value="X TAB B">X TAB B</option>
+                            <option value="XI DKV">XI DKV</option>
+                            <option value="XI TAB A">XI TAB A</option>
+                            <option value="XI TAB B">XI TAB B</option>
+                            <option value="XII DKV">XII DKV</option>
+                            <option value="XII TAB A">XII TAB A</option>
+                            <option value="XII TAB B">XII TAB B</option>
+                        </select>
                     </div>
-                </form>
-            </div>
+
+                    <!-- Mata Pelajaran -->
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-2">Mata Pelajaran</label>
+                        <input type="text" id="mataPelajaran" required placeholder="Nama mata pelajaran"
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none input-focus transition-all duration-300">
+                    </div>
+
+                    <!-- Dari Jam -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Dari Jam Ke</label>
+                        <select id="dariJam" required 
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none input-focus transition-all duration-300">
+                            <option value="">Pilih Jam</option>
+                            <option value="1">Jam ke-1</option>
+                            <option value="2">Jam ke-2</option>
+                            <option value="3">Jam ke-3</option>
+                            <option value="4">Jam ke-4</option>
+                            <option value="5">Jam ke-5</option>
+                            <option value="6">Jam ke-6</option>
+                            <option value="7">Jam ke-7</option>
+                            <option value="8">Jam ke-8</option>
+                            <option value="9">Jam ke-9</option>
+                        </select>
+                    </div>
+
+                    <!-- Sampai Jam -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Sampai Jam Ke</label>
+                        <select id="sampaiJam" required 
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none input-focus transition-all duration-300">
+                            <option value="">Pilih Jam</option>
+                            <option value="1">Jam ke-1</option>
+                            <option value="2">Jam ke-2</option>
+                            <option value="3">Jam ke-3</option>
+                            <option value="4">Jam ke-4</option>
+                            <option value="5">Jam ke-5</option>
+                            <option value="6">Jam ke-6</option>
+                            <option value="7">Jam ke-7</option>
+                            <option value="8">Jam ke-8</option>
+                            <option value="9">Jam ke-9</option>
+                        </select>
+                    </div>
+
+                    <!-- Jumlah JP (Auto Calculate) -->
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-2">Jumlah JP</label>
+                        <div class="relative">
+                            <input type="number" id="jumlahJP" readonly 
+                                   class="w-full px-6 py-4 border-2 border-gradient-to-r from-yellow-300 to-blue-300 rounded-xl bg-gradient-to-r from-yellow-50 to-blue-50 text-gray-800 font-bold text-xl text-center shadow-inner">
+                            <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-blue-500 font-semibold">
+                                JP
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center pt-4">
+                    <button type="submit" 
+                            class="bg-gradient-to-r from-yellow-400 to-blue-500 text-white font-bold py-4 px-8 rounded-2xl btn-hover transition-all duration-300 text-lg">
+                        💾 Simpan Data
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <!-- Filter and Search -->
-        <div class="bg-white rounded-lg shadow-xl p-4 border-4 border-green-400 mb-4 no-print">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">🔍 Cari Data</label>
-                    <input type="text" id="searchInput" placeholder="Cari nama, kelas, mapel..." class="w-full px-3 py-2 border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-400">
+        <!-- Success Message Overlay -->
+        <div id="successOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-3xl card-shadow p-12 text-center success-animation max-w-md mx-4">
+                <div class="text-8xl mb-6">
+                    <span class="thumbs-up inline-block">👍</span>
+                    <span class="wink inline-block ml-4">😉</span>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">📅 Filter Tanggal</label>
-                    <input type="date" id="filterDate" class="w-full px-3 py-2 border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-400">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">🏫 Filter Kelas</label>
-                    <select id="filterKelas" class="w-full px-3 py-2 border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-400">
-                        <option value="">Semua Kelas</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button id="clearFilter" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors">
-                        🔄 Reset Filter
+                <h3 class="text-3xl font-bold text-green-600 mb-4">Data Berhasil Disimpan!</h3>
+                <p class="text-gray-600 text-lg">Job pending telah ditambahkan ke dalam sistem.</p>
+                <div class="mt-6">
+                    <button onclick="closeSuccessMessage()" class="bg-gradient-to-r from-green-400 to-blue-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all duration-300">
+                        ✓ OK
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Data View -->
-        <div class="bg-white rounded-lg shadow-xl p-6 border-4 border-blue-400">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-blue-800">📊 Data Tersimpan</h2>
-                <div class="flex gap-2">
-                    <span class="text-sm text-gray-600">Menampilkan: <span id="showingCount">0</span> dari <span id="totalCount">0</span> data</span>
-                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        🔄 Refresh
-                    </button>
-                </div>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full border-collapse border border-blue-300 text-sm">
-                    <thead>
-                        <tr class="bg-blue-600 text-white">
-                            <th class="border border-blue-300 px-3 py-2">No</th>
-                            <th class="border border-blue-300 px-3 py-2 cursor-pointer hover:bg-blue-700" onclick="sortData('tanggal')">
-                                📅 Tanggal <span id="sort-tanggal">↕️</span>
-                            </th>
-                            <th class="border border-blue-300 px-3 py-2 cursor-pointer hover:bg-blue-700" onclick="sortData('pembuatpending')">
-                                👤 Pembuat <span id="sort-pembuatpending">↕️</span>
-                            </th>
-                            <th class="border border-blue-300 px-3 py-2 cursor-pointer hover:bg-blue-700" onclick="sortData('penerimapending')">
-                                🎯 Penerima <span id="sort-penerimapending">↕️</span>
-                            </th>
-                            <th class="border border-blue-300 px-3 py-2 cursor-pointer hover:bg-blue-700" onclick="sortData('kelas')">
-                                🏫 Kelas <span id="sort-kelas">↕️</span>
-                            </th>
-                            <th class="border border-blue-300 px-3 py-2">📚 Mapel</th>
-                            <th class="border border-blue-300 px-3 py-2">⏰ Jam</th>
-                            <th class="border border-blue-300 px-3 py-2 cursor-pointer hover:bg-blue-700" onclick="sortData('jumlahjp')">
-                                📊 JP <span id="sort-jumlahjp">↕️</span>
-                            </th>
-                            <th class="border border-blue-300 px-3 py-2 no-print">🔧 Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody">
-                        <tr>
-                            <td colspan="9" class="text-center py-8 text-gray-500">
-                                <div class="loading mx-auto mb-2"></div>
-                                Memuat data dari Google Sheets...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="flex justify-between items-center mt-4 no-print">
-                <div class="flex items-center gap-2">
-                    <label class="text-sm text-gray-600">Data per halaman:</label>
-                    <select id="itemsPerPage" class="border border-gray-300 rounded px-2 py-1">
-                        <option value="10">10</option>
-                        <option value="25" selected>25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-                <div id="pagination" class="flex gap-2"></div>
-            </div>
+        <!-- Copyright -->
+        <div class="text-center mt-8">
+            <p class="text-white text-sm opacity-80">© 2025 Kurikulum SMK Maharati</p>
         </div>
-
-        <!-- Status Message -->
-        <div id="statusMessage" class="mt-4 hidden"></div>
     </div>
 
     <script>
-        // Global variables
-        let jobPendingData = [];
-        let filteredData = [];
-        let currentPage = 1;
-        let itemsPerPage = 25;
-        let sortField = '';
-        let sortDirection = 'asc';
+        // Array untuk menyimpan data (simulasi spreadsheet)
+        let pendingData = [];
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-        });
-
-        function initializeApp() {
-            // Set tanggal hari ini sebagai default
-            document.getElementById('tanggal').valueAsDate = new Date();
+        // Auto calculate JP
+        function calculateJP() {
+            const dariJam = parseInt(document.getElementById('dariJam').value);
+            const sampaiJam = parseInt(document.getElementById('sampaiJam').value);
             
-            // Load data from Google Sheets
-            loadDataFromStorage();
-            
-            // Setup event listeners
-            setupEventListeners();
-        }
-
-        function setupEventListeners() {
-            // Form events
-            document.getElementById('jamDari').addEventListener('change', updateTotalJP);
-            document.getElementById('jamSampai').addEventListener('change', updateTotalJP);
-            document.getElementById('jobPendingForm').addEventListener('submit', handleFormSubmit);
-            
-            // Toggle form
-            document.getElementById('toggleForm').addEventListener('click', toggleForm);
-            
-            // Filter events
-            document.getElementById('searchInput').addEventListener('input', applyFilters);
-            document.getElementById('filterDate').addEventListener('change', applyFilters);
-            document.getElementById('filterKelas').addEventListener('change', applyFilters);
-            document.getElementById('clearFilter').addEventListener('click', clearFilters);
-            
-            // Pagination
-            document.getElementById('itemsPerPage').addEventListener('change', function() {
-                itemsPerPage = parseInt(this.value);
-                currentPage = 1;
-                displayData();
-            });
-            
-            // Refresh
-            document.getElementById('refreshBtn').addEventListener('click', function() {
-                loadDataFromStorage();
-                showStatus('🔄 Data berhasil di-refresh dari Google Sheets!', 'success');
-            });
-        }
-
-        function loadDataFromStorage() {
-            showStatus('📡 Memuat data dari Google Sheets...', 'info');
-            
-            google.script.run
-                .withSuccessHandler(function(data) {
-                    jobPendingData = data || [];
-                    filteredData = [...jobPendingData];
-                    updateFilterOptions();
-                    updateAutocompleteLists();
-                    displayData();
-                    showStatus('✅ Data berhasil dimuat dari Google Sheets!', 'success');
-                })
-                .withFailureHandler(function(error) {
-                    console.error('Error loading data:', error);
-                    showStatus('❌ Gagal memuat data dari Google Sheets: ' + error.message, 'error');
-                })
-                .loadJobPendingData();
-        }
-
-        function addDataToStorage(newData) {
-            google.script.run
-                .withSuccessHandler(function() {
-                    showStatus('✅ Data berhasil ditambahkan ke Google Sheets!', 'success');
-                    // Reload data to get updated list
-                    setTimeout(() => {
-                        loadDataFromStorage();
-                    }, 500);
-                })
-                .withFailureHandler(function(error) {
-                    console.error('Error adding data:', error);
-                    showStatus('❌ Gagal menambah data ke Google Sheets: ' + error.message, 'error');
-                })
-                .addJobPendingData(newData);
-        }
-
-        function updateTotalJP() {
-            const jamDari = parseInt(document.getElementById('jamDari').value);
-            const jamSampai = parseInt(document.getElementById('jamSampai').value);
-            
-            let totalJP = 0;
-            let jamRange = '';
-            
-            if (jamDari && jamSampai && jamDari <= jamSampai) {
-                totalJP = jamSampai - jamDari + 1;
-                jamRange = jamDari === jamSampai ? `Jam ke ${jamDari}` : `Jam ke ${jamDari} - ${jamSampai}`;
+            if (dariJam && sampaiJam && sampaiJam >= dariJam) {
+                const jumlahJP = sampaiJam - dariJam + 1;
+                document.getElementById('jumlahJP').value = jumlahJP;
+            } else {
+                document.getElementById('jumlahJP').value = '';
             }
-            
-            document.getElementById('totalJP').textContent = totalJP;
-            document.getElementById('jamTerpilih').textContent = totalJP > 0 ? `Rentang: ${jamRange}` : 'Belum ada jam yang dipilih';
         }
 
-        function handleFormSubmit(e) {
+        // Event listeners untuk auto calculate
+        document.getElementById('dariJam').addEventListener('change', calculateJP);
+        document.getElementById('sampaiJam').addEventListener('change', calculateJP);
+
+
+
+        // Form submission
+        document.getElementById('pendingForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const jamDari = parseInt(document.getElementById('jamDari').value);
-            const jamSampai = parseInt(document.getElementById('jamSampai').value);
-            const submitBtn = document.getElementById('submitBtn');
-            
-            if (!jamDari || !jamSampai) {
-                showStatus('⚠️ Silakan pilih jam dari dan sampai!', 'error');
-                return;
-            }
-            
-            if (jamDari > jamSampai) {
-                showStatus('⚠️ Jam awal tidak boleh lebih besar dari jam akhir!', 'error');
+
+            // Validasi semua field harus terisi
+            const tanggal = document.getElementById('tanggal').value;
+            const pembuatPending = document.getElementById('pembuatPending').value;
+            const penerimaPending = document.getElementById('penerimaPending').value;
+            const kelas = document.getElementById('kelas').value;
+            const mataPelajaran = document.getElementById('mataPelajaran').value;
+            const dariJam = document.getElementById('dariJam').value;
+            const sampaiJam = document.getElementById('sampaiJam').value;
+            const jumlahJP = document.getElementById('jumlahJP').value;
+
+            // Cek apakah ada field yang kosong
+            if (!tanggal || !pembuatPending || !penerimaPending || !kelas || !mataPelajaran || !dariJam || !sampaiJam || !jumlahJP) {
+                // Tampilkan pesan error
+                showErrorMessage('Semua field harus diisi!');
                 return;
             }
 
-            const data = {
-                tanggal: document.getElementById('tanggal').value,
-                pembuatpending: document.getElementById('pembuatPending').value.trim(),
-                penerimapending: document.getElementById('penerimaPending').value.trim(),
-                kelas: document.getElementById('kelas').value,
-                matapelajaran: document.getElementById('mataPelajaran').value.trim(),
-                jamke: getRentangJam(jamDari, jamSampai),
-                jumlahjp: jamSampai - jamDari + 1
+            // Validasi jam (sampai jam harus >= dari jam)
+            if (parseInt(sampaiJam) < parseInt(dariJam)) {
+                showErrorMessage('Jam selesai harus lebih besar atau sama dengan jam mulai!');
+                return;
+            }
+
+            // Ambil data dari form
+            const formData = {
+                tanggal: tanggal,
+                pembuatPending: pembuatPending,
+                penerimaPending: penerimaPending,
+                kelas: kelas,
+                mataPelajaran: mataPelajaran,
+                dariJam: dariJam,
+                sampaiJam: sampaiJam,
+                jumlahJP: jumlahJP
             };
 
-            // Disable button dan show loading
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '⏳ Menyimpan ke Google Sheets...';
-            
-            // Add data to Google Sheets (append to bottom)
-            addDataToStorage(data);
+            // Simpan ke array (simulasi spreadsheet)
+            pendingData.push(formData);
+
+            // Tampilkan pesan sukses
+            document.getElementById('successOverlay').classList.remove('hidden');
             
             // Reset form
+            document.getElementById('pendingForm').reset();
+            document.getElementById('jumlahJP').value = '';
+
+            // Auto close setelah 4 detik
             setTimeout(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '📤 Simpan Data';
-                
-                showStatus('🎉 Data berhasil disimpan ke Google Sheets! Data baru telah ditambahkan ke baris bawah.', 'success');
-                document.getElementById('jobPendingForm').reset();
-                document.getElementById('tanggal').valueAsDate = new Date();
-                updateTotalJP();
-            }, 1000);
-        }
+                closeSuccessMessage();
+            }, 4000);
+        });
 
-        function getRentangJam(jamDari, jamSampai) {
-            return jamDari === jamSampai ? `Jam ke ${jamDari}` : `Jam ke ${jamDari} - ${jamSampai}`;
-        }
-
-        function toggleForm() {
-            const container = document.getElementById('formContainer');
-            const btn = document.getElementById('toggleForm');
-            
-            if (container.style.display === 'none') {
-                container.style.display = 'block';
-                btn.innerHTML = '➖ Sembunyikan Form';
-            } else {
-                container.style.display = 'none';
-                btn.innerHTML = '➕ Tampilkan Form';
+        // Function untuk menampilkan pesan error
+        function showErrorMessage(message) {
+            // Hapus pesan error sebelumnya jika ada
+            const existingError = document.getElementById('errorMessage');
+            if (existingError) {
+                existingError.remove();
             }
+
+            // Buat elemen pesan error
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'errorMessage';
+            errorDiv.className = 'bg-red-100 border-2 border-red-400 text-red-700 px-6 py-4 rounded-xl mb-4 text-center';
+            errorDiv.innerHTML = `
+                <div class="flex items-center justify-center">
+                    <span class="text-2xl mr-2">⚠️</span>
+                    <span class="font-semibold">${message}</span>
+                </div>
+            `;
+
+            // Tambahkan sebelum form
+            const form = document.getElementById('pendingForm');
+            form.parentNode.insertBefore(errorDiv, form);
+
+            // Hapus pesan error setelah 5 detik
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+
+            // Scroll ke pesan error
+            errorDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function updateFilterOptions() {
-            const kelasSelect = document.getElementById('filterKelas');
-            const uniqueKelas = [...new Set(jobPendingData.map(item => item.kelas))].sort();
-            
-            kelasSelect.innerHTML = '<option value="">Semua Kelas</option>';
-            uniqueKelas.forEach(kelas => {
-                kelasSelect.innerHTML += `<option value="${kelas}">${kelas}</option>`;
-            });
+        // Function untuk menutup pesan sukses
+        function closeSuccessMessage() {
+            document.getElementById('successOverlay').classList.add('hidden');
         }
 
-        function updateAutocompleteLists() {
-            const pembuat = [...new Set(jobPendingData.map(item => item.pembuatpending))];
-            const penerima = [...new Set(jobPendingData.map(item => item.penerimapending))];
-            const mapel = [...new Set(jobPendingData.map(item => item.matapelajaran))];
-            
-            updateDatalist('pembuatList', pembuat);
-            updateDatalist('penerimaList', penerima);
-            updateDatalist('mapelList', mapel);
-        }
-
-        function updateDatalist(id, items) {
-            const datalist = document.getElementById(id);
-            datalist.innerHTML = '';
-            items.forEach(item => {
-                datalist.innerHTML += `<option value="${item}">`;
-            });
-        }
-
-        function applyFilters() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filterDate = document.getElementById('filterDate').value;
-            const filterKelas = document.getElementById('filterKelas').value;
-            
-            filteredData = jobPendingData.filter(item => {
-                const matchSearch = !searchTerm || 
-                    item.pembuatpending.toLowerCase().includes(searchTerm) ||
-                    item.penerimapending.toLowerCase().includes(searchTerm) ||
-                    item.kelas.toLowerCase().includes(searchTerm) ||
-                    item.matapelajaran.toLowerCase().includes(searchTerm);
-                
-                const matchDate = !filterDate || item.tanggal === filterDate;
-                const matchKelas = !filterKelas || item.kelas === filterKelas;
-                
-                return matchSearch && matchDate && matchKelas;
-            });
-            
-            currentPage = 1;
-            displayData();
-        }
-
-        function clearFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('filterDate').value = '';
-            document.getElementById('filterKelas').value = '';
-            filteredData = [...jobPendingData];
-            currentPage = 1;
-            displayData();
-            showStatus('🔄 Filter berhasil direset!', 'info');
-        }
-
-        function sortData(field) {
-            if (sortField === field) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortField = field;
-                sortDirection = 'asc';
-            }
-            
-            filteredData.sort((a, b) => {
-                let aVal = a[field];
-                let bVal = b[field];
-                
-                if (field === 'jumlahjp') {
-                    aVal = parseInt(aVal);
-                    bVal = parseInt(bVal);
-                }
-                
-                if (sortDirection === 'asc') {
-                    return aVal > bVal ? 1 : -1;
-                } else {
-                    return aVal < bVal ? 1 : -1;
-                }
-            });
-            
-            // Update sort indicators
-            document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '↕️');
-            document.getElementById(`sort-${field}`).textContent = sortDirection === 'asc' ? '↑' : '↓';
-            
-            displayData();
-        }
-
-        function displayData() {
-            const tbody = document.getElementById('dataTableBody');
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageData = filteredData.slice(startIndex, endIndex);
-            
-            if (pageData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-gray-500">📭 Tidak ada data yang ditemukan</td></tr>';
-            } else {
-                tbody.innerHTML = pageData.map((item, index) => `
-                    <tr class="hover:bg-blue-50">
-                        <td class="border border-blue-300 px-3 py-2 text-center">${startIndex + index + 1}</td>
-                        <td class="border border-blue-300 px-3 py-2">${formatDate(item.tanggal)}</td>
-                        <td class="border border-blue-300 px-3 py-2">${item.pembuatpending}</td>
-                        <td class="border border-blue-300 px-3 py-2">${item.penerimapending}</td>
-                        <td class="border border-blue-300 px-3 py-2">
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">${item.kelas}</span>
-                        </td>
-                        <td class="border border-blue-300 px-3 py-2">${item.matapelajaran}</td>
-                        <td class="border border-blue-300 px-3 py-2">${item.jamke}</td>
-                        <td class="border border-blue-300 px-3 py-2 text-center">
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">${item.jumlahjp} JP</span>
-                        </td>
-                        <td class="border border-blue-300 px-3 py-2 text-center no-print">
-                            <div class="flex gap-1 justify-center">
-                                <button onclick="editItem('${item.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs transition-colors" title="Edit">
-                                    ✏️
-                                </button>
-                                <button onclick="deleteItem('${item.id}', ${item.rowIndex})" class="btn-delete bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors" title="Hapus">
-                                    🗑️
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-            
-            updatePagination();
-            updateCounters();
-        }
-
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            const pagination = document.getElementById('pagination');
-            
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-            
-            let paginationHTML = '';
-            
-            // Previous button
-            if (currentPage > 1) {
-                paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">‹</button>`;
-            }
-            
-            // Page numbers
-            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-                const isActive = i === currentPage;
-                paginationHTML += `<button onclick="changePage(${i})" class="px-3 py-1 ${isActive ? 'bg-blue-800 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'} rounded">${i}</button>`;
-            }
-            
-            // Next button
-            if (currentPage < totalPages) {
-                paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">›</button>`;
-            }
-            
-            pagination.innerHTML = paginationHTML;
-        }
-
-        function changePage(page) {
-            currentPage = page;
-            displayData();
-        }
-
-        function updateCounters() {
-            document.getElementById('showingCount').textContent = filteredData.length;
-            document.getElementById('totalCount').textContent = jobPendingData.length;
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('id-ID', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        function editItem(id) {
-            const item = jobPendingData.find(data => data.id === id);
-            if (!item) return;
-            
-            // Fill form with existing data
-            document.getElementById('tanggal').value = item.tanggal;
-            document.getElementById('pembuatPending').value = item.pembuatpending;
-            document.getElementById('penerimaPending').value = item.penerimapending;
-            document.getElementById('kelas').value = item.kelas;
-            document.getElementById('mataPelajaran').value = item.matapelajaran;
-            
-            // Parse jam range
-            const jamMatch = item.jamke.match(/Jam ke (\d+)(?:\s*-\s*(\d+))?/);
-            if (jamMatch) {
-                document.getElementById('jamDari').value = jamMatch[1];
-                document.getElementById('jamSampai').value = jamMatch[2] || jamMatch[1];
-            }
-            
-            updateTotalJP();
-            
-            // Remove the item temporarily for editing
-            jobPendingData = jobPendingData.filter(data => data.id !== id);
-            
-            // Update Google Sheets
-            google.script.run
-                .withSuccessHandler(function() {
-                    loadDataFromStorage();
-                })
-                .withFailureHandler(function(error) {
-                    showStatus('❌ Gagal menghapus data untuk edit: ' + error.message, 'error');
-                })
-                .updateJobPendingData(jobPendingData);
-            
-            // Show form if hidden
-            const container = document.getElementById('formContainer');
-            if (container.style.display === 'none') {
-                toggleForm();
-            }
-            
-            // Scroll to form
-            document.getElementById('formContainer').scrollIntoView({ behavior: 'smooth' });
-            
-            showStatus('📝 Data dimuat untuk diedit. Silakan ubah dan simpan kembali.', 'info');
-        }
-
-        function deleteItem(id, rowIndex) {
-            const item = jobPendingData.find(data => data.id === id);
-            if (!item) return;
-            
-            if (confirm(`Apakah Anda yakin ingin menghapus data:\n\n${item.pembuatpending} → ${item.penerimapending}\n${item.kelas} - ${item.matapelajaran}\n${item.jamke} (${item.jumlahjp} JP)?`)) {
-                
-                google.script.run
-                    .withSuccessHandler(function() {
-                        showStatus('✅ Data berhasil dihapus dari Google Sheets!', 'success');
-                        loadDataFromStorage();
-                    })
-                    .withFailureHandler(function(error) {
-                        showStatus('❌ Gagal menghapus data: ' + error.message, 'error');
-                    })
-                    .deleteJobPendingRow(rowIndex);
-            }
-        }
-
-        function showStatus(message, type = 'info') {
-            const statusElement = document.getElementById('statusMessage');
-            const bgColor = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 
-                           type === 'error' ? 'bg-red-100 border-red-400 text-red-700' : 
-                           'bg-blue-100 border-blue-400 text-blue-700';
-            
-            statusElement.className = `fade-in border-l-4 p-4 rounded shadow-lg ${bgColor}`;
-            statusElement.innerHTML = `<div class="flex items-center"><span class="mr-2">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>${message}</div>`;
-            statusElement.classList.remove('hidden');
-            
-            setTimeout(() => statusElement.classList.add('hidden'), 7000);
-        }
+        // Set tanggal hari ini sebagai default
+        document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'988c4613c0d1b5e7',t:'MTc1OTQ5Mjc3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'989b1380d1740fad',t:'MTc1OTY0Nzk4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
