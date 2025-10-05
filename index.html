@@ -219,6 +219,9 @@
         </div>
     </div>
 
+    <!-- Hidden iframe untuk menerima response dari Google Apps Script -->
+    <iframe name="hidden_iframe" style="display:none;"></iframe>
+
     <script>
         // Array untuk menyimpan data (simulasi spreadsheet)
         let pendingData = [];
@@ -240,8 +243,6 @@
         document.getElementById('dariJam').addEventListener('change', calculateJP);
         document.getElementById('sampaiJam').addEventListener('change', calculateJP);
 
-
-
         // Form submission
         document.getElementById('pendingForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -258,7 +259,6 @@
 
             // Cek apakah ada field yang kosong
             if (!tanggal || !pembuatPending || !penerimaPending || !kelas || !mataPelajaran || !dariJam || !sampaiJam || !jumlahJP) {
-                // Tampilkan pesan error
                 showErrorMessage('Semua field harus diisi!');
                 return;
             }
@@ -269,7 +269,19 @@
                 return;
             }
 
-            // Ambil data dari form
+            // Update button status
+            const submitButton = document.querySelector('button[type="submit"]');
+            submitButton.innerHTML = '⏳ Menyimpan...';
+            submitButton.disabled = true;
+
+            // Buat form tersembunyi untuk mengirim data ke Google Apps Script
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://script.google.com/macros/s/AKfycbzf9cMEhe3Ifnf3vgvHfex2cF-5iwyV8LPZOfWByjuvElBJ5kJBQJEzcjbi4n-7Sl2PWg/exec';
+            form.target = 'hidden_iframe';
+            form.style.display = 'none';
+            
+            // Tambahkan data sebagai hidden inputs
             const formData = {
                 tanggal: tanggal,
                 pembuatPending: pembuatPending,
@@ -281,20 +293,43 @@
                 jumlahJP: jumlahJP
             };
 
-            // Simpan ke array (simulasi spreadsheet)
+            Object.keys(formData).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = formData[key];
+                form.appendChild(input);
+            });
+            
+            // Tambahkan form ke body dan submit
+            document.body.appendChild(form);
+            form.submit();
+            
+            // Hapus form setelah submit
+            setTimeout(() => {
+                document.body.removeChild(form);
+            }, 1000);
+
+            // Simpan ke array lokal sebagai backup
             pendingData.push(formData);
 
-            // Tampilkan pesan sukses
-            document.getElementById('successOverlay').classList.remove('hidden');
-            
-            // Reset form
-            document.getElementById('pendingForm').reset();
-            document.getElementById('jumlahJP').value = '';
-
-            // Auto close setelah 4 detik
+            // Reset button setelah 3 detik
             setTimeout(() => {
-                closeSuccessMessage();
-            }, 4000);
+                submitButton.innerHTML = '💾 Simpan Data';
+                submitButton.disabled = false;
+                
+                // Tampilkan pesan sukses
+                document.getElementById('successOverlay').classList.remove('hidden');
+                
+                // Reset form
+                document.getElementById('pendingForm').reset();
+                document.getElementById('jumlahJP').value = '';
+
+                // Auto close setelah 4 detik
+                setTimeout(() => {
+                    closeSuccessMessage();
+                }, 4000);
+            }, 3000);
         });
 
         // Function untuk menampilkan pesan error
@@ -337,5 +372,5 @@
         // Set tanggal hari ini sebagai default
         document.getElementById('tanggal').value = new Date().toISOString().split('T')[0];
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'989b1380d1740fad',t:'MTc1OTY0Nzk4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'989b34b5b03cb5e7',t:'MTc1OTY0OTM0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
